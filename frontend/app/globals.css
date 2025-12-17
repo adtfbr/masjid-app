@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+/* Konfigurasi Tema (Pengganti tailwind.config.ts) */
+@theme {
+  /* Warna Palette Masjid */
+  --color-navy: #0a3d62;
+  --color-navy-light: #145485;
+
+  --color-aqua: #30d5c8;
+  --color-aqua-dim: #25a89e;
+
+  --color-white: #ffffff;
+
+  /* Font (Otomatis deteksi dari layout.tsx, tapi kita definisikan default) */
+  --font-sans: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+}
+
+/* Custom Utilities jika diperlukan nanti */
