@@ -5,11 +5,17 @@ import { FaCalendarAlt, FaClock, FaMapMarkerAlt, FaUserTie } from 'react-icons/f
 import ScrollReveal from './ScrollReveal';
 import axios from 'axios';
 import moment from 'moment';
-import 'moment/locale/id'; // Bahasa Indonesia
+import 'moment/locale/id';
+import Link from 'next/link';
+import Image from 'next/image';
 
 export default function EventSection() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // URL Base untuk gambar dari Laravel Storage
+  // Pastikan sesuaikan port jika berbeda (8000 default)
+  const STORAGE_URL = 'http://127.0.0.1:8000/storage/';
 
   useEffect(() => {
     axios.get('http://127.0.0.1:8000/api/public-data')
@@ -22,8 +28,8 @@ export default function EventSection() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return null; // Atau tampilkan loading spinner
-  if (events.length === 0) return null; // Sembunyikan jika tidak ada event
+  if (loading) return null;
+  if (events.length === 0) return null;
 
   return (
     <section id="agenda" className="py-20 bg-slate-50 relative overflow-hidden">
@@ -46,22 +52,43 @@ export default function EventSection() {
             <ScrollReveal key={event.id} delay={index * 0.1}>
               <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl hover:border-aqua/30 transition-all duration-300 group h-full flex flex-col">
                 
-                <div className="bg-navy p-4 flex justify-between items-center">
-                  <span className="text-xs font-bold px-3 py-1 rounded-full bg-aqua/20 text-aqua">
-                    {event.category}
-                  </span>
-                  <div className="flex items-center gap-2 text-white/80 text-sm">
-                    <FaCalendarAlt className="text-aqua" />
-                    <span>{moment(event.date).format('dddd, D MMM YYYY')}</span>
-                  </div>
+                {/* Bagian Gambar Poster (Baru) */}
+                <div className="relative h-48 w-full bg-gray-200 overflow-hidden">
+                    {event.image ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img 
+                            src={`${STORAGE_URL}${event.image}`} 
+                            alt={event.title}
+                            className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
+                        />
+                    ) : (
+                        // Fallback jika tidak ada gambar (Pattern Navy)
+                        <div className="w-full h-full bg-navy flex items-center justify-center relative">
+                             <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_1px_1px,#fff_1px,transparent_0)] bg-[size:10px_10px]"></div>
+                             <FaCalendarAlt className="text-white/20 text-6xl" />
+                        </div>
+                    )}
+                    
+                    {/* Badge Kategori */}
+                    <div className="absolute top-4 left-4">
+                        <span className="text-xs font-bold px-3 py-1 rounded-full bg-white/90 text-navy shadow-sm backdrop-blur-sm">
+                            {event.category}
+                        </span>
+                    </div>
                 </div>
 
+                {/* Body Kartu */}
                 <div className="p-6 flex-1 flex flex-col">
-                  <h3 className="text-xl font-bold text-navy mb-3 group-hover:text-aqua transition-colors line-clamp-2">
+                  <div className="flex items-center gap-2 text-slate-500 text-xs mb-3 font-medium">
+                    <FaCalendarAlt className="text-aqua" />
+                    <span>{moment(event.date).format('dddd, D MMMM YYYY')}</span>
+                  </div>
+
+                  <h3 className="text-xl font-bold text-navy mb-3 group-hover:text-aqua transition-colors line-clamp-2 leading-snug">
                     {event.title}
                   </h3>
                   
-                  <div className="space-y-3 text-sm text-slate-600 mt-auto">
+                  <div className="space-y-3 text-sm text-slate-600 mt-auto pt-4 border-t border-dashed border-gray-100">
                     {event.speaker && (
                       <div className="flex items-start gap-3">
                         <FaUserTie className="text-aqua mt-1 shrink-0" />
@@ -78,11 +105,14 @@ export default function EventSection() {
                     </div>
                   </div>
                 </div>
-
+                {/* Footer Kartu (Action) */}
                 <div className="p-4 border-t border-gray-100 bg-gray-50 text-center">
-                  <button className="text-navy text-sm font-bold hover:text-aqua transition-colors w-full">
+                  <Link 
+                    href={`/agenda/${event.slug}`} // Link Dinamis ke Detail
+                    className="text-navy text-sm font-bold hover:text-aqua transition-colors w-full block"
+                  >
                     Detail Kegiatan &rarr;
-                  </button>
+                  </Link>
                 </div>
 
               </div>

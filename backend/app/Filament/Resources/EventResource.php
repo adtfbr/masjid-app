@@ -9,7 +9,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Support\Str; // Import Str Helper
+use Illuminate\Support\Str;
 
 class EventResource extends Resource
 {
@@ -26,9 +26,8 @@ class EventResource extends Resource
                     ->label('Nama Kegiatan')
                     ->required()
                     ->maxLength(255)
-                    ->live(onBlur: true) // Bereaksi saat selesai ketik
+                    ->live(onBlur: true)
                     ->afterStateUpdated(function (string $operation, $state, Forms\Set $set) {
-                        // Jika sedang membuat data baru, auto-isi slug dari title
                         if ($operation === 'create') {
                             $set('slug', Str::slug($state));
                         }
@@ -37,9 +36,9 @@ class EventResource extends Resource
                 Forms\Components\TextInput::make('slug')
                     ->label('Slug URL (Otomatis)')
                     ->disabled()
-                    ->dehydrated() // PENTING: Tetap kirim ke DB meski disabled
+                    ->dehydrated()
                     ->required()
-                    ->unique(Event::class, 'slug', ignoreRecord: true), // Cek unik
+                    ->unique(Event::class, 'slug', ignoreRecord: true),
 
                 Forms\Components\Select::make('category')
                     ->label('Kategori')
@@ -50,6 +49,15 @@ class EventResource extends Resource
                         'PHBI' => 'Peringatan Hari Besar Islam',
                     ])
                     ->required(),
+
+                // --- TAMBAHAN BARU: UPLOAD GAMBAR ---
+                Forms\Components\FileUpload::make('image')
+                    ->label('Poster Kegiatan')
+                    ->image() // Validasi harus gambar
+                    ->directory('events') // Simpan di folder storage/app/public/events
+                    ->visibility('public')
+                    ->columnSpanFull(),
+                // ------------------------------------
 
                 Forms\Components\DatePicker::make('date')
                     ->label('Tanggal Pelaksanaan')
@@ -82,6 +90,8 @@ class EventResource extends Resource
     {
         return $table
             ->columns([
+                // Tampilkan Thumbnail Gambar di Tabel Admin
+                Tables\Columns\ImageColumn::make('image')->label('Poster'),
                 Tables\Columns\TextColumn::make('title')->sortable()->searchable()->label('Kegiatan'),
                 Tables\Columns\TextColumn::make('date')->date()->sortable()->label('Tanggal'),
                 Tables\Columns\TextColumn::make('category')->sortable(),

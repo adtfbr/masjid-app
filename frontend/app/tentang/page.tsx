@@ -3,100 +3,122 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ScrollReveal from "@/components/ScrollReveal";
-import { FaHistory, FaBullseye, FaUsers, FaMosque } from 'react-icons/fa';
-import Image from "next/image";
+import { FaHistory, FaBullseye, FaUsers, FaMosque, FaHandHoldingHeart } from 'react-icons/fa';
 
 export default function AboutPage() {
   return (
     <main className="min-h-screen bg-white">
       <Navbar />
 
-      {/* 1. Header Hero Kecil */}
-      <section className="pt-32 pb-16 bg-navy text-white text-center relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-aqua opacity-10 rounded-full blur-3xl -mr-10 -mt-10"></div>
+      {/* 1. Header Hero */}
+      <section className="pt-32 pb-20 bg-navy text-white text-center relative overflow-hidden">
+        {/* Dekorasi Background */}
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 opacity-20">
+            <div className="absolute -top-24 -left-24 w-96 h-96 bg-aqua rounded-full blur-[100px]"></div>
+            <div className="absolute top-1/2 right-0 w-64 h-64 bg-white rounded-full blur-[80px]"></div>
+        </div>
+
         <div className="max-w-4xl mx-auto px-4 relative z-10">
-          <h1 className="text-4xl font-bold mb-4">Tentang Masjid Al-Huda</h1>
-          <p className="text-white/80 text-lg">
-            Mengenal lebih dekat pusat ibadah dan pembinaan umat di Cikumpa Griya Depok Asri.
-          </p>
+          <ScrollReveal>
+            <span className="inline-block py-1 px-3 rounded-full bg-white/10 border border-white/20 text-aqua text-xs font-semibold mb-4 backdrop-blur-sm">
+                Profil Masjid
+            </span>
+            <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
+                Mengenal Lebih Dekat <br/> Masjid Al-Huda
+            </h1>
+            <p className="text-slate-300 text-lg max-w-2xl mx-auto leading-relaxed">
+                Pusat ibadah dan pembinaan umat di Cikumpa Griya Depok Asri. 
+                Berkhidmat melayani jamaah, membangun peradaban.
+            </p>
+          </ScrollReveal>
         </div>
       </section>
 
       {/* 2. Sejarah Singkat */}
-      <section className="py-20">
+      <section className="py-20 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row items-center gap-12">
+          <div className="flex flex-col md:flex-row items-center gap-16">
             <div className="w-full md:w-1/2">
-                {/* Ganti src dengan foto masjid lama/sejarah jika ada */}
-                <div className="relative h-80 bg-gray-200 rounded-2xl overflow-hidden shadow-lg">
-                    <div className="absolute inset-0 flex items-center justify-center text-gray-400">
-                        [Foto Sejarah Masjid]
+                <ScrollReveal direction="left">
+                    <div className="relative h-[400px] bg-slate-200 rounded-3xl overflow-hidden shadow-2xl border-8 border-white transform -rotate-2 hover:rotate-0 transition-all duration-500">
+                        {/* Placeholder Foto Sejarah - Bisa diganti nanti */}
+                        <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 bg-slate-100">
+                            <FaHistory className="text-6xl mb-4 opacity-20" />
+                            <span className="text-sm font-semibold">[Foto Dokumentasi Lama/Baru]</span>
+                        </div>
                     </div>
-                </div>
+                </ScrollReveal>
             </div>
             <div className="w-full md:w-1/2">
-              <ScrollReveal direction="right">
-                <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-navy/10 rounded-full flex items-center justify-center text-navy">
-                        <FaHistory />
+              <ScrollReveal direction="right" delay={0.2}>
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="w-12 h-12 bg-navy/10 rounded-full flex items-center justify-center text-navy text-xl">
+                        <FaMosque />
                     </div>
-                    <h2 className="text-2xl font-bold text-navy">Sejarah Berdiri</h2>
+                    <h2 className="text-3xl font-bold text-navy">Sejarah & Perjalanan</h2>
                 </div>
-                <p className="text-slate-600 leading-relaxed mb-4">
-                  Masjid Al-Huda didirikan pada tahun 1993 atas inisiatif warga Muslim di lingkungan Cikumpa Griya Depok Asri yang merindukan tempat ibadah yang layak.
-                </p>
-                <p className="text-slate-600 leading-relaxed">
-                  Berawal dari musholla sederhana, kini Masjid Al-Huda telah berkembang menjadi pusat kegiatan keislaman yang menampung ratusan jamaah, dilengkapi dengan berbagai fasilitas sosial dan pendidikan untuk melayani umat.
-                </p>
+                <div className="space-y-4 text-slate-600 leading-relaxed text-justify">
+                    <p>
+                    <strong>Masjid Al-Huda</strong> berdiri pada tahun <strong>1993</strong>, bermula dari semangat gotong royong warga Muslim di lingkungan Cikumpa Griya Depok Asri yang mendambakan sarana ibadah yang representatif.
+                    </p>
+                    <p>
+                    Awalnya hanya berupa bangunan sederhana, namun seiring bertambahnya jumlah jamaah dan dukungan masyarakat, masjid ini terus mengalami renovasi dan perluasan. Kini, Al-Huda bukan sekadar tempat sholat, melainkan pusat ekosistem umat.
+                    </p>
+                    <p>
+                    Dengan semangat <em>"Masjid Peduli Umat & Masyarakat"</em>, kami terus berinovasi menghadirkan program-program yang menyentuh langsung kebutuhan jamaah, mulai dari layanan ambulans, santunan, hingga pendidikan Al-Quran.
+                    </p>
+                </div>
               </ScrollReveal>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 3. Visi & Misi */}
-      <section className="py-20 bg-slate-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* 3. Visi & Misi Cards */}
+      <section className="py-24 bg-slate-50 relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <ScrollReveal>
             <div className="text-center mb-16">
               <h2 className="text-3xl font-bold text-navy mb-4">Visi & Misi</h2>
-              <div className="w-20 h-1 bg-aqua mx-auto rounded-full"></div>
+              <div className="w-24 h-1.5 bg-aqua mx-auto rounded-full"></div>
             </div>
           </ScrollReveal>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Visi */}
-            <ScrollReveal direction="left">
-                <div className="bg-white p-8 rounded-2xl shadow-md border-t-4 border-navy h-full">
-                    <div className="flex items-center gap-4 mb-6">
-                        <FaMosque className="text-4xl text-aqua" />
-                        <h3 className="text-2xl font-bold text-navy">Visi</h3>
+            <ScrollReveal direction="up" delay={0.1} className="h-full">
+                <div className="bg-white p-10 rounded-3xl shadow-xl hover:shadow-2xl transition-shadow border-t-8 border-navy h-full flex flex-col items-center text-center">
+                    <div className="w-20 h-20 bg-navy/5 rounded-full flex items-center justify-center text-navy text-4xl mb-6">
+                        <FaBullseye />
                     </div>
-                    <p className="text-lg text-slate-700 font-medium italic">
-                        "Terwujudnya Masjid Al-Huda sebagai pusat peradaban umat yang makmur, ramah, dan melayani, serta mencetak generasi Rabbani."
+                    <h3 className="text-2xl font-bold text-navy mb-4">Visi Kami</h3>
+                    <p className="text-lg text-slate-600 font-medium leading-relaxed italic">
+                        "Terwujudnya Masjid Al-Huda sebagai pusat peradaban umat yang makmur, ramah, dan melayani, serta mencetak generasi Rabbani yang bermanfaat bagi masyarakat."
                     </p>
                 </div>
             </ScrollReveal>
 
             {/* Misi */}
-            <ScrollReveal direction="right" delay={0.2}>
-                <div className="bg-white p-8 rounded-2xl shadow-md border-t-4 border-aqua h-full">
+            <ScrollReveal direction="up" delay={0.2} className="h-full">
+                <div className="bg-white p-10 rounded-3xl shadow-xl hover:shadow-2xl transition-shadow border-t-8 border-aqua h-full flex flex-col">
                     <div className="flex items-center gap-4 mb-6">
-                        <FaBullseye className="text-4xl text-navy" />
-                        <h3 className="text-2xl font-bold text-navy">Misi</h3>
+                        <div className="w-16 h-16 bg-aqua/10 rounded-full flex items-center justify-center text-aqua text-3xl shrink-0">
+                            <FaHandHoldingHeart />
+                        </div>
+                        <h3 className="text-2xl font-bold text-navy">Misi Utama</h3>
                     </div>
-                    <ul className="space-y-3 text-slate-600">
-                        <li className="flex items-start gap-3">
-                            <span className="w-6 h-6 bg-navy/10 rounded-full flex items-center justify-center text-navy text-xs font-bold mt-0.5">1</span>
-                            <span>Menyelenggarakan peribadatan yang khusyuk dan sesuai sunnah.</span>
+                    <ul className="space-y-4 text-slate-600">
+                        <li className="flex items-start gap-4">
+                            <span className="w-6 h-6 bg-navy text-white rounded-full flex items-center justify-center text-xs font-bold mt-0.5 shrink-0">1</span>
+                            <span>Menyelenggarakan peribadatan yang khusyuk, nyaman, dan sesuai sunnah Rasulullah SAW.</span>
                         </li>
-                        <li className="flex items-start gap-3">
-                            <span className="w-6 h-6 bg-navy/10 rounded-full flex items-center justify-center text-navy text-xs font-bold mt-0.5">2</span>
-                            <span>Mengelola dana umat (ZISWAF) secara transparan dan produktif.</span>
+                        <li className="flex items-start gap-4">
+                            <span className="w-6 h-6 bg-navy text-white rounded-full flex items-center justify-center text-xs font-bold mt-0.5 shrink-0">2</span>
+                            <span>Mengelola dana umat (Infaq, Shodaqoh, Wakaf) secara transparan, akuntabel, dan produktif.</span>
                         </li>
-                        <li className="flex items-start gap-3">
-                            <span className="w-6 h-6 bg-navy/10 rounded-full flex items-center justify-center text-navy text-xs font-bold mt-0.5">3</span>
-                            <span>Menyediakan layanan sosial (ambulans, santunan) yang mudah diakses.</span>
+                        <li className="flex items-start gap-4">
+                            <span className="w-6 h-6 bg-navy text-white rounded-full flex items-center justify-center text-xs font-bold mt-0.5 shrink-0">3</span>
+                            <span>Menyediakan layanan sosial dan pendidikan yang mudah diakses oleh seluruh lapisan masyarakat.</span>
                         </li>
                     </ul>
                 </div>
@@ -105,36 +127,29 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* 4. Struktur Pengurus (DKM) */}
-      <section className="py-20">
+      {/* 4. Struktur DKM (Grid) */}
+      <section className="py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <ScrollReveal>
-                <div className="text-center mb-12">
-                    <div className="flex items-center justify-center gap-3 mb-2 text-navy">
-                        <FaUsers className="text-2xl" />
-                        <h2 className="text-3xl font-bold">Pengurus DKM</h2>
-                    </div>
-                    <p className="text-slate-500">Khadimul Ummah (Pelayan Umat) Periode 2024-2027</p>
+                <div className="text-center mb-16">
+                    <h2 className="text-3xl font-bold text-navy mb-2">Struktur Pengurus DKM</h2>
+                    <p className="text-slate-500">Khadimul Ummah (Pelayan Umat) Masjid Al-Huda</p>
                 </div>
             </ScrollReveal>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-                {/* Item Pengurus */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
                 {[
-                    { name: 'H. Fulan Abdullah', role: 'Ketua DKM' },
-                    { name: 'Ust. Ahmad Zaki', role: 'Imam Besar' },
-                    { name: 'Bpk. Budi Santoso', role: 'Bendahara' },
-                    { name: 'Sdr. Rizky', role: 'Ketua Remaja' },
+                    { name: 'H. Nama Ketua', role: 'Ketua DKM' },
+                    { name: 'Ust. Nama Imam', role: 'Imam Besar' },
+                    { name: 'Bpk. Nama Sekretaris', role: 'Sekretaris' },
+                    { name: 'Bpk. Nama Bendahara', role: 'Bendahara' },
                 ].map((person, idx) => (
                     <ScrollReveal key={idx} delay={idx * 0.1}>
-                        <div className="group">
-                            <div className="w-32 h-32 mx-auto bg-gray-200 rounded-full mb-4 overflow-hidden border-4 border-white shadow-lg group-hover:border-aqua transition-colors">
-                                {/* Placeholder Foto */}
-                                <div className="w-full h-full flex items-center justify-center bg-slate-300 text-slate-500 text-4xl">
-                                    <FaUsers /> 
-                                </div>
+                        <div className="group bg-white p-6 rounded-2xl border border-slate-100 hover:border-aqua transition-all hover:shadow-lg">
+                            <div className="w-24 h-24 mx-auto bg-slate-100 rounded-full mb-4 overflow-hidden border-2 border-slate-200 group-hover:border-aqua transition-colors flex items-center justify-center text-slate-300">
+                                <FaUsers className="text-3xl" />
                             </div>
-                            <h4 className="font-bold text-navy text-lg">{person.name}</h4>
+                            <h4 className="font-bold text-navy text-lg leading-tight mb-1">{person.name}</h4>
                             <p className="text-aqua text-sm font-medium">{person.role}</p>
                         </div>
                     </ScrollReveal>
