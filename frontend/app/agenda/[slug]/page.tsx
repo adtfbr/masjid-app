@@ -17,11 +17,12 @@ export default function EventDetailPage() {
   const [event, setEvent] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  // URL Storage (Sesuaikan port backend)
-  const STORAGE_URL = 'http://127.0.0.1:8000/storage/';
+  // MENGGUNAKAN ENV VARIABLE DENGAN FALLBACK
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+  const STORAGE_URL = process.env.NEXT_PUBLIC_STORAGE_URL || 'http://127.0.0.1:8000/storage/';
 
   useEffect(() => {
-    axios.get('http://127.0.0.1:8000/api/public-data')
+    axios.get(`${API_URL}/api/public-data`)
       .then(res => {
         if(res.data.success) {
           const found = res.data.data.events.find((e: any) => e.slug === slug);
@@ -30,7 +31,7 @@ export default function EventDetailPage() {
       })
       .catch(err => console.error(err))
       .finally(() => setLoading(false));
-  }, [slug]);
+  }, [slug]); // Hapus API_URL dari dependency
 
   if (loading) return <div className="min-h-screen flex items-center justify-center text-navy">Memuat Detail...</div>;
   
@@ -44,7 +45,6 @@ export default function EventDetailPage() {
     </main>
   );
 
-  // Template Pesan WA (Revisi: Bertanya Info, bukan Daftar)
   const message = `Assalamualaikum Admin, saya ingin bertanya informasi lebih lanjut mengenai kegiatan: ${event.title}.`;
   const waLink = `https://wa.me/628567861311?text=${encodeURIComponent(message)}`;
 
@@ -55,15 +55,12 @@ export default function EventDetailPage() {
       <section className="pt-32 pb-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6">
             
-            {/* Breadcrumb / Back */}
             <Link href="/#agenda" className="inline-flex items-center text-slate-500 hover:text-navy mb-6 text-sm font-medium transition-colors">
                 <FaArrowLeft className="mr-2" /> Kembali ke Agenda
             </Link>
 
-            {/* Poster Image (Banner) */}
             <div className="rounded-3xl overflow-hidden shadow-2xl mb-10 bg-gray-100 border border-slate-100">
                 {event.image ? (
-                    // eslint-disable-next-line @next/next/no-img-element
                     <img 
                         src={`${STORAGE_URL}${event.image}`} 
                         alt={event.title}
@@ -78,7 +75,6 @@ export default function EventDetailPage() {
 
             <div className="flex flex-col md:flex-row gap-10">
                 
-                {/* Kolom Kiri: Konten Utama */}
                 <div className="md:w-2/3">
                     <span className="text-aqua font-bold tracking-wider text-sm uppercase mb-2 block">
                         {event.category}
@@ -87,14 +83,12 @@ export default function EventDetailPage() {
                         {event.title}
                     </h1>
 
-                    {/* Label Terbuka Umum */}
                     <div className="inline-flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-lg text-sm font-semibold mb-8 border border-green-100">
                         <FaCheckCircle />
                         Terbuka untuk Umum (Ikhwan & Akhwat)
                     </div>
 
                     <div className="prose prose-lg text-slate-600 leading-relaxed mb-8">
-                        {/* Render Deskripsi (Support Newline) */}
                         {event.description?.split('\n').map((line: string, i: number) => (
                             <p key={i} className="mb-4">{line}</p>
                         ))}
@@ -102,7 +96,6 @@ export default function EventDetailPage() {
                     </div>
                 </div>
 
-                {/* Kolom Kanan: Sidebar Info & CTA */}
                 <div className="md:w-1/3">
                     <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 sticky top-28">
                         <h3 className="text-lg font-bold text-navy mb-4 border-b border-slate-200 pb-2">
@@ -147,7 +140,6 @@ export default function EventDetailPage() {
                             </div>
                         </div>
 
-                        {/* Tombol Tanya Admin (Bukan Daftar) */}
                         <a 
                             href={waLink}
                             target="_blank"

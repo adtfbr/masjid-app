@@ -7,18 +7,18 @@ import axios from 'axios';
 import moment from 'moment';
 import 'moment/locale/id';
 import Link from 'next/link';
-import Image from 'next/image';
 
 export default function EventSection() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // URL Base untuk gambar dari Laravel Storage
-  // Pastikan sesuaikan port jika berbeda (8000 default)
-  const STORAGE_URL = 'http://127.0.0.1:8000/storage/';
+  // MENGGUNAKAN ENV VARIABLE DENGAN FALLBACK
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+  const STORAGE_URL = process.env.NEXT_PUBLIC_STORAGE_URL || 'http://127.0.0.1:8000/storage/';
 
   useEffect(() => {
-    axios.get('http://127.0.0.1:8000/api/public-data')
+    // Panggil API menggunakan variable
+    axios.get(`${API_URL}/api/public-data`)
       .then(res => {
         if(res.data.success) {
           setEvents(res.data.data.events);
@@ -26,7 +26,7 @@ export default function EventSection() {
       })
       .catch(err => console.error(err))
       .finally(() => setLoading(false));
-  }, []);
+  }, []); // Hapus API_URL dari dependency agar tidak re-render berulang
 
   if (loading) return null;
   if (events.length === 0) return null;
@@ -52,24 +52,21 @@ export default function EventSection() {
             <ScrollReveal key={event.id} delay={index * 0.1}>
               <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl hover:border-aqua/30 transition-all duration-300 group h-full flex flex-col">
                 
-                {/* Bagian Gambar Poster (Baru) */}
+                {/* Poster Image */}
                 <div className="relative h-48 w-full bg-gray-200 overflow-hidden">
                     {event.image ? (
-                        // eslint-disable-next-line @next/next/no-img-element
                         <img 
                             src={`${STORAGE_URL}${event.image}`} 
                             alt={event.title}
                             className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
                         />
                     ) : (
-                        // Fallback jika tidak ada gambar (Pattern Navy)
                         <div className="w-full h-full bg-navy flex items-center justify-center relative">
                              <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_1px_1px,#fff_1px,transparent_0)] bg-[size:10px_10px]"></div>
                              <FaCalendarAlt className="text-white/20 text-6xl" />
                         </div>
                     )}
                     
-                    {/* Badge Kategori */}
                     <div className="absolute top-4 left-4">
                         <span className="text-xs font-bold px-3 py-1 rounded-full bg-white/90 text-navy shadow-sm backdrop-blur-sm">
                             {event.category}
@@ -105,10 +102,11 @@ export default function EventSection() {
                     </div>
                   </div>
                 </div>
+
                 {/* Footer Kartu (Action) */}
                 <div className="p-4 border-t border-gray-100 bg-gray-50 text-center">
                   <Link 
-                    href={`/agenda/${event.slug}`} // Link Dinamis ke Detail
+                    href={`/agenda/${event.slug}`}
                     className="text-navy text-sm font-bold hover:text-aqua transition-colors w-full block"
                   >
                     Detail Kegiatan &rarr;

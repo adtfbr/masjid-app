@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import moment from 'moment';
-import ScrollReveal from './ScrollReveal'; // Pastikan path ini benar
+import ScrollReveal from './ScrollReveal';
 
 interface PrayerData {
   city: string;
@@ -20,9 +20,30 @@ export default function PrayerTimes() {
   const [nextPrayer, setNextPrayer] = useState<string>('-');
   const [countdown, setCountdown] = useState<string>('00:00:00');
 
+  // GUNAKAN FALLBACK JIKA ENV NULL
+  // Jika NEXT_PUBLIC_API_URL tidak terbaca, otomatis pakai localhost
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+
   useEffect(() => {
-    fetchSchedule();
-  }, []);
+    const fetchSchedule = async () => {
+        try {
+          // Debugging: Cek URL di Console browser jika penasaran
+          // console.log("Fetching from:", `${API_URL}/api/prayer-times`);
+          
+          const res = await axios.get(`${API_URL}/api/prayer-times`);
+          if (res.data.success) {
+            setData(res.data.data);
+            calculateNextPrayer(res.data.data.timings);
+          }
+        } catch (error) {
+          console.error('Gagal ambil jadwal:', error);
+        } finally {
+          setLoading(false);
+        }
+      };
+  
+      fetchSchedule();
+  }, []); // Hapus API_URL dari dependency array agar tidak re-render berulang
 
   useEffect(() => {
     if (!data) return;
@@ -32,27 +53,12 @@ export default function PrayerTimes() {
     return () => clearInterval(timer);
   }, [data]);
 
-  const fetchSchedule = async () => {
-    try {
-      const res = await axios.get('http://127.0.0.1:8000/api/prayer-times');
-      if (res.data.success) {
-        setData(res.data.data);
-        calculateNextPrayer(res.data.data.timings);
-      }
-    } catch (error) {
-      console.error('Gagal ambil jadwal:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const calculateNextPrayer = (timings: { [key: string]: string }) => {
     const now = moment();
     let foundNext = false;
     let nextPrayerName = 'Subuh';
     let nextPrayerTime = moment(timings['Subuh'], 'HH:mm').add(1, 'days');
 
-    // Urutan waktu sholat (Keluarkan 'Terbit' jika ingin 5 waktu saja)
     const order = ['Subuh', 'Terbit', 'Dzuhur', 'Ashar', 'Maghrib', 'Isya'];
 
     for (const name of order) {
@@ -89,7 +95,7 @@ export default function PrayerTimes() {
         <div className="bg-white rounded-3xl shadow-xl shadow-gray-200/50 border border-gray-100 p-6 lg:p-8 overflow-hidden">
           <div className="flex flex-col xl:flex-row items-center justify-between gap-8">
               
-              {/* KOLOM KIRI: INFO WAKTU & COUNTDOWN */}
+              {/* KOLOM KIRI */}
               <div className="text-center xl:text-left border-b xl:border-b-0 xl:border-r border-gray-100 pb-6 xl:pb-0 xl:pr-10 w-full xl:w-auto min-w-[250px]">
                   <div className="inline-block bg-navy/5 px-3 py-1 rounded-full mb-3">
                     <p className="text-navy text-xs font-bold uppercase tracking-widest">
@@ -107,9 +113,8 @@ export default function PrayerTimes() {
                   </p>
               </div>
 
-              {/* KOLOM KANAN: GRID JADWAL SHOLAT (RESPONSIF) */}
+              {/* KOLOM KANAN */}
               <div className="flex-1 w-full">
-                  {/* Gunakan Grid: 3 Kolom di HP, 6 Kolom di Tablet/Desktop */}
                   <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
                       {Object.entries(data.timings).map(([name, time]) => {
                           const isNext = name === nextPrayer;
@@ -119,7 +124,6 @@ export default function PrayerTimes() {
                                       ? 'bg-navy text-white shadow-lg shadow-navy/30 scale-105 ring-2 ring-offset-2 ring-aqua z-10' 
                                       : 'bg-slate-50 hover:bg-white hover:shadow-md border border-transparent hover:border-gray-100 text-slate-600'
                               }`}>
-                                  {/* Indikator Aktif (Titik Hijau) */}
                                   {isNext && (
                                     <span className="absolute top-2 right-2 w-2 h-2 bg-aqua rounded-full animate-pulse"></span>
                                   )}

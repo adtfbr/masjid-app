@@ -1,4 +1,5 @@
 <?php
+
 return [
 
     /*
@@ -10,21 +11,28 @@ return [
     | or "CORS". This determines what cross-origin operations may execute
     | in web browsers. You are free to adjust these settings as needed.
     |
+    | To learn more: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
+    |
     */
-'paths' => ['api/*', 'sanctum/csrf-cookie'],
 
-'allowed_methods' => ['*'],
+    'paths' => ['api/*', 'sanctum/csrf-cookie', 'storage/*'], // Tambahkan storage/* agar gambar bisa diakses
 
-'allowed_origins' => ['http://localhost:3000'], // Izinkan Next.js
+    'allowed_methods' => ['*'],
 
-'allowed_origins_patterns' => [],
+    'allowed_origins' => [
+        'http://localhost:3000', // Next.js default
+        'http://127.0.0.1:3000', // Next.js IP variant
+        '*' // HATI-HATI: Gunakan '*' hanya saat dev jika masih error, tapi sebaiknya spesifik
+    ],
 
-'allowed_headers' => ['*'],
+    'allowed_origins_patterns' => [],
 
-'exposed_headers' => [],
+    'allowed_headers' => ['*'],
 
-'max_age' => 0,
+    'exposed_headers' => [],
 
-'supports_credentials' => true, // Penting untuk Auth/Session
+    'max_age' => 0,
+
+    'supports_credentials' => true, // Penting jika pakai cookies/auth
 
 ];

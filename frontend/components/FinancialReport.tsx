@@ -8,17 +8,20 @@ import axios from 'axios';
 export default function FinancialReport() {
   const [data, setData] = useState<any>(null);
 
+  // MENGGUNAKAN ENV VARIABLE DENGAN FALLBACK
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+
   useEffect(() => {
-    axios.get('http://127.0.0.1:8000/api/public-data')
+    axios.get(`${API_URL}/api/public-data`)
       .then(res => {
         if(res.data.success) {
           setData(res.data.data);
         }
       })
       .catch(err => console.error(err));
-  }, []);
+  }, []); // Hapus API_URL dari dependency
 
-  if (!data) return null; // Loading state
+  if (!data) return null;
 
   const { financial, recent_donations } = data;
 
@@ -43,7 +46,7 @@ export default function FinancialReport() {
         </ScrollReveal>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-            {/* Saldo Total (Sementara hardcoded atau ambil dari DB jika ada tabel saldo) */}
+            {/* Saldo Total */}
             <ScrollReveal delay={0.1}>
               <div className="bg-gradient-to-br from-navy to-navy-light p-6 rounded-2xl text-white shadow-xl shadow-navy/20 relative overflow-hidden h-full">
                   <div className="relative z-10">
