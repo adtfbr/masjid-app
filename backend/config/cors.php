@@ -6,23 +6,16 @@ return [
     |--------------------------------------------------------------------------
     | Cross-Origin Resource Sharing (CORS) Configuration
     |--------------------------------------------------------------------------
-    |
-    | Here you may configure your settings for cross-origin resource sharing
-    | or "CORS". This determines what cross-origin operations may execute
-    | in web browsers. You are free to adjust these settings as needed.
-    |
-    | To learn more: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
-    |
     */
 
-    'paths' => ['api/*', 'sanctum/csrf-cookie', 'storage/*'], // Tambahkan storage/* agar gambar bisa diakses
+    'paths' => ['api/*', 'sanctum/csrf-cookie', 'storage/*'], //
 
     'allowed_methods' => ['*'],
 
     'allowed_origins' => [
-        'http://localhost:3000', // Next.js default
-        'http://127.0.0.1:3000', // Next.js IP variant
-        '*' // HATI-HATI: Gunakan '*' hanya saat dev jika masih error, tapi sebaiknya spesifik
+        'http://localhost:3000', // URL Development Next.js
+        'http://127.0.0.1:3000',
+        // Nanti tambahkan domain production di sini, misal: 'https://masjid-alhuda.com'
     ],
 
     'allowed_origins_patterns' => [],
@@ -33,6 +26,7 @@ return [
 
     'max_age' => 0,
 
-    'supports_credentials' => true, // Penting jika pakai cookies/auth
+    // SANGAT PENTING: Set ke true agar cookie sesi (Sanctum) bisa lewat
+    'supports_credentials' => true,
 
 ];

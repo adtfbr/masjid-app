@@ -5,40 +5,49 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\Donation;
+use App\Models\BankAccount; // Pastikan model ini sudah dibuat
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 
 class PublicDataController extends Controller
 {
     public function getHomeData()
     {
-        // Logic Data (Sama seperti sebelumnya)
-        $events = Event::where('is_active', true)
-            ->whereDate('date', '>=', Carbon::today())
-            ->orderBy('date', 'asc')
-            ->take(3)
-            ->get();
+        // Cache data selama 1 jam (3600 detik) agar database tidak jebol saat traffic tinggi
+        $data = Cache::remember('home_public_data', 3600, function () {
 
-        $totalDonation = Donation::where('status', 'verified')->sum('amount');
+            // 1. Ambil Event (3 terdekat)
+            $events = Event::where('is_active', true)
+                ->whereDate('date', '>=', Carbon::today())
+                ->orderBy('date', 'asc')
+                ->take(3)
+                ->get();
 
-        $donationThisMonth = Donation::where('status', 'verified')
-            ->whereMonth('created_at', Carbon::now()->month)
-            ->whereYear('created_at', Carbon::now()->year)
-            ->sum('amount');
+            // 2. Hitung Total Saldo (Hanya yang verified)
+            $totalDonation = Donation::where('status', 'verified')->sum('amount');
 
-        $recentDonations = Donation::where('status', 'verified')
-            ->orderBy('created_at', 'desc')
-            ->take(5)
-            ->get(['donor_name', 'amount', 'category', 'created_at']);
+            // 3. Hitung Pemasukan Bulan Ini
+            $donationThisMonth = Donation::where('status', 'verified')
+                ->whereMonth('created_at', Carbon::now()->month)
+                ->whereYear('created_at', Carbon::now()->year)
+                ->sum('amount');
 
-        return response()->json([
-            'success' => true,
-            'data' => [
+            // 4. Ambil 10 Donasi Terakhir untuk Running Text
+            $recentDonations = Donation::where('status', 'verified')
+                ->orderBy('created_at', 'desc')
+                ->take(10)
+                ->get(['donor_name', 'amount', 'category', 'created_at']);
+
+            // 5. Ambil Data Rekening & QRIS yang Aktif
+            $bank = BankAccount::where('is_active', true)->first();
+
+            return [
                 'events' => $events,
                 'financial' => [
                     'total_balance' => number_format($totalDonation, 0, ',', '.'),
                     'income_month' => number_format($donationThisMonth, 0, ',', '.'),
-                    'last_update' => Carbon::now()->translatedFormat('d F Y'),
+                    'last_update' => Carbon::now()->translatedFormat('d F Y H:i'),
                 ],
                 'recent_donations' => $recentDonations->map(function($d) {
                     return [
@@ -47,8 +56,21 @@ class PublicDataController extends Controller
                         'category' => $d->category,
                         'time' => $d->created_at->diffForHumans(),
                     ];
-                })
-            ]
+                }),
+                // Data Bank untuk Frontend
+                'bank_account' => $bank ? [
+                    'bank' => $bank->bank_name,
+                    'number' => $bank->account_number,
+                    'name' => $bank->account_name,
+                    // Pastikan storage sudah dilink: php artisan storage:link
+                    'qris_url' => $bank->qris_image ? asset('storage/' . $bank->qris_image) : null,
+                ] : null,
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => $data
         ]);
     }
 }

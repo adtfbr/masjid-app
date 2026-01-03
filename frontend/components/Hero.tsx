@@ -82,7 +82,7 @@ export default function Hero() {
           >
               <div className="aspect-[4/3] bg-gray-800 relative group">
                    <div className="absolute inset-0 flex items-center justify-center text-white/20 font-bold text-center p-4 z-10 group-hover:text-aqua transition-colors">
-                      [Foto Masjid Al-Huda]<br/>Silakan ganti dengan foto asli
+                      [Foto Masjid Al-Huda]<br/>
                    </div>
                    {/* Gradient Overlay */}
                    <div className="absolute inset-0 bg-gradient-to-t from-navy via-transparent to-transparent"></div>
