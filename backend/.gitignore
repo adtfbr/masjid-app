@@ -1,4 +1,4 @@
-# --- KONFIGURASI LAMA KAMU ---
+
 
 .log
 .DS_Store
@@ -25,9 +25,10 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 
-# --- TAMBAHAN UNTUK CLAUDE AI (MENGECILKAN UKURAN) ---
 
-# Mengabaikan cache framework yang sering berubah dan berat
+
+composer.lock
+package-lock.json
 
 /storage/framework/cache/data/*
 /storage/framework/sessions/*
@@ -35,7 +36,7 @@ Thumbs.db
 /storage/framework/views/*
 /storage/logs/*
 
-# Mengabaikan file debug npm/yarn
+
 
 npm-debug.log
 yarn-error.log
