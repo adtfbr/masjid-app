@@ -1,4 +1,6 @@
-*.log
+# --- KONFIGURASI LAMA KAMU ---
+
+.log
 .DS_Store
 .env
 .env.backup
@@ -16,9 +18,24 @@
 /public/build
 /public/hot
 /public/storage
-/storage/*.key
+/storage/.key
 /storage/pail
 /vendor
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# --- TAMBAHAN UNTUK CLAUDE AI (MENGECILKAN UKURAN) ---
+
+# Mengabaikan cache framework yang sering berubah dan berat
+
+/storage/framework/cache/data/*
+/storage/framework/sessions/*
+/storage/framework/testing/*
+/storage/framework/views/*
+/storage/logs/*
+
+# Mengabaikan file debug npm/yarn
+
+npm-debug.log
+yarn-error.log
