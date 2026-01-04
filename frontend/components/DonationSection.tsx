@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import axios from "axios";
+import api from "@/lib/axios"; // Gunakan client API kita
 import {
   FaWhatsapp,
   FaCopy,
@@ -21,18 +21,27 @@ export default function DonationSection() {
   const [hasTransferred, setHasTransferred] = useState(false);
   const [amount, setAmount] = useState("");
 
-  // Setup URL API
-  const API_URL =
-    process.env.NEXT_PUBLIC_API_URL ||
-    "[http://127.0.0.1:8000](http://127.0.0.1:8000)";
+  const STORAGE_URL = process.env.NEXT_PUBLIC_STORAGE_URL || "http://localhost:8000/storage/";
 
   // Fetch data bank saat komponen dimuat
   useEffect(() => {
     const fetchBankData = async () => {
       try {
-        const res = await axios.get(`${API_URL}/api/public-data`);
-        if (res.data.success && res.data.data.bank_account) {
-          setBankData(res.data.data.bank_account);
+        // PERBAIKAN: Gunakan api client & endpoint baru
+        // Backend baru mengembalikan { bank_accounts: [...] }
+        const res = await api.get('/public/initial-data');
+        
+        if (res.data.bank_accounts && res.data.bank_accounts.length > 0) {
+          const acc = res.data.bank_accounts[0];
+          
+          // Mapping data dari backend baru ke struktur state lama
+          setBankData({
+            bank: acc.bank_name,
+            number: acc.account_number,
+            name: acc.account_holder,
+            // Jika ada logo/qris di database, gabungkan dengan STORAGE_URL
+            qris_url: acc.logo ? `${STORAGE_URL}${acc.logo}` : null 
+          });
         }
       } catch (error) {
         console.error("Gagal mengambil data rekening:", error);
@@ -40,7 +49,7 @@ export default function DonationSection() {
     };
 
     fetchBankData();
-  }, [API_URL]);
+  }, [STORAGE_URL]);
 
   // Gunakan data dari API jika ada, jika tidak gunakan placeholder loading
   const bankDetails = bankData || {
@@ -168,6 +177,7 @@ Mohon dicek. Terima kasih.`;
                   {/* AREA QRIS DINAMIS */}
                   <div className="w-48 h-48 bg-gray-100 border-4 border-white shadow-inner rounded-xl overflow-hidden relative mb-6">
                     {bankDetails.qris_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={bankDetails.qris_url}
                         alt="QRIS Masjid"

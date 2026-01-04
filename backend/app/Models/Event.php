@@ -9,12 +9,19 @@ class Event extends Model
 {
     use HasFactory;
 
-    // Izinkan semua kolom diisi (Mass Assignment)
-    protected $guarded = [];
+    protected $guarded = ['id'];
 
-    // Casting tipe data agar tanggal & status terbaca benar
     protected $casts = [
-        'date' => 'date',
+        'start_time' => 'datetime',
+        'end_time' => 'datetime',
         'is_active' => 'boolean',
     ];
+
+    // --- SCOPE PENTING INI MUNGKIN HILANG/BELUM ADA ---
+    public function scopeUpcoming($query)
+    {
+        return $query->where('start_time', '>=', now())
+                     ->where('is_active', true)
+                     ->orderBy('start_time', 'asc');
+    }
 }

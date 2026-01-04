@@ -10,18 +10,17 @@ return new class extends Migration
     {
         Schema::create('events', function (Blueprint $table) {
             $table->id();
-            $table->string('title'); // Judul: Kajian Subuh
-            $table->string('slug')->unique(); // kajian-subuh
-            $table->string('category'); // Kajian, Sosial, Pendidikan
-            $table->string('speaker')->nullable(); // Ustadz Fulan
+            $table->string('title'); // Judul Kajian
+            $table->string('slug')->unique(); // Untuk URL: masjid.com/agenda/kajian-subuh
+            $table->text('description')->nullable();
+            $table->string('lecturer')->nullable(); // Nama Ustadz
             $table->string('location')->default('Masjid Al-Huda');
 
-            // Waktu
-            $table->date('date'); // 2025-12-25
-            $table->string('time'); // 04:30 - Selesai
+            // Perubahan: Menggunakan dateTime agar bisa dihitung countdown-nya
+            $table->dateTime('start_time');
+            $table->dateTime('end_time')->nullable();
 
-            $table->text('description')->nullable();
-            $table->string('image')->nullable(); // Poster
+            $table->string('poster')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });

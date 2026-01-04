@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react';
 import { FaArrowUp, FaArrowDown, FaWallet, FaFilePdf } from 'react-icons/fa';
 import ScrollReveal from './ScrollReveal';
-import axios from 'axios';
+import api from '@/lib/axios'; // Menggunakan custom axios instance kita
 
-// 1. Definisikan Interface agar tidak pakai 'any'
+// Interface sesuai desain lama, tapi diisi data baru
 interface FinancialData {
   financial: {
     total_balance: string;
@@ -22,16 +22,45 @@ interface FinancialData {
 
 export default function FinancialReport() {
   const [data, setData] = useState<FinancialData | null>(null);
-  const [loading, setLoading] = useState(true); // Tambah loading state
+  const [loading, setLoading] = useState(true);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+  // Helper format angka biasa (tanpa Rp, karena di JSX sudah ada Rp)
+  const formatNumber = (num: number) => {
+    return new Intl.NumberFormat('id-ID').format(num);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await axios.get(`${API_URL}/api/public-data`);
-        if(res.data.success) {
-          setData(res.data.data);
+        // PERBAIKAN: Gunakan 'api' instance. 
+        // Instance ini sudah memiliki baseURL dari .env (http://localhost:8000/api)
+        // Jadi kita cukup panggil endpoint-nya saja TANPA '/api' lagi.
+        const res = await api.get('/public/initial-data');
+        
+        if(res.data.financial) {
+          const f = res.data.financial;
+          const today = new Date().toLocaleDateString('id-ID', {
+             day: 'numeric', month: 'long', year: 'numeric'
+          });
+
+          // Mapping mutasi (type: in) menjadi recent_donations
+          const donations = f.mutations
+            .filter((m: any) => m.type === 'in')
+            .map((m: any) => ({
+                name: m.description.replace('Donasi: ', ''),
+                amount: formatNumber(m.amount),
+                category: 'Infaq', // Kategori default
+                time: new Date(m.date).toLocaleDateString('id-ID')
+            }));
+
+          setData({
+            financial: {
+               total_balance: formatNumber(f.balance),
+               income_month: formatNumber(f.total_income),
+               last_update: today
+            },
+            recent_donations: donations
+          });
         }
       } catch (err) {
         console.error("Gagal mengambil data keuangan:", err);
@@ -43,7 +72,6 @@ export default function FinancialReport() {
     fetchData();
   }, []);
 
-  // 2. Tampilkan Skeleton Loading jika data belum ada
   if (loading) {
     return (
         <section className="py-20 bg-white">
@@ -62,7 +90,7 @@ export default function FinancialReport() {
     );
   }
 
-  if (!data) return null; // Jika error / kosong
+  if (!data) return null;
 
   const { financial, recent_donations } = data;
 
@@ -73,15 +101,14 @@ export default function FinancialReport() {
         <ScrollReveal>
           <div className="flex flex-col md:flex-row justify-between items-end mb-10 gap-4">
             <div>
-              <h2 className="text-3xl font-bold text-navy">Transparansi Keuangan</h2>
-              <div className="w-20 h-1 bg-aqua rounded-full mt-2 mb-2"></div>
+              <h2 className="text-3xl font-bold text-slate-900">Transparansi Keuangan</h2>
+              <div className="w-20 h-1 bg-amber-400 rounded-full mt-2 mb-2"></div>
               <p className="text-slate-500 text-sm">
                 Laporan infaq dan penggunaan dana umat yang akuntabel.
-                <br/>Update terakhir: <span className="font-semibold text-navy">{financial.last_update}</span>
+                <br/>Update terakhir: <span className="font-semibold text-slate-900">{financial.last_update}</span>
               </p>
             </div>
-            {/* Tombol PDF bisa dibuat nanti */}
-            <button disabled className="opacity-50 cursor-not-allowed bg-white border border-slate-200 text-navy px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2">
+            <button disabled className="opacity-50 cursor-not-allowed bg-white border border-slate-200 text-slate-900 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2">
               <FaFilePdf className="text-red-500" /> Download Laporan PDF (Segera)
             </button>
           </div>
@@ -90,9 +117,9 @@ export default function FinancialReport() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
             {/* Kartu Saldo */}
             <ScrollReveal delay={0.1}>
-              <div className="bg-gradient-to-br from-navy to-navy-light p-6 rounded-2xl text-white shadow-xl shadow-navy/20 relative overflow-hidden h-full transform hover:-translate-y-1 transition-transform duration-300">
+              <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-6 rounded-2xl text-white shadow-xl relative overflow-hidden h-full transform hover:-translate-y-1 transition-transform duration-300">
                   <div className="relative z-10">
-                      <p className="text-aqua text-sm font-medium mb-1 flex items-center gap-2">
+                      <p className="text-amber-400 text-sm font-medium mb-1 flex items-center gap-2">
                           <FaWallet /> Total Donasi Masuk
                       </p>
                       <h3 className="text-3xl font-bold font-mono">Rp {financial.total_balance}</h3>
@@ -130,7 +157,7 @@ export default function FinancialReport() {
         {recent_donations.length > 0 && (
             <ScrollReveal direction="up" delay={0.4}>
             <div className="bg-slate-900 rounded-xl p-3 flex items-center overflow-hidden shadow-lg">
-                <div className="bg-aqua text-navy text-xs font-bold px-3 py-1 rounded mr-4 flex-shrink-0 animate-pulse">
+                <div className="bg-amber-400 text-slate-900 text-xs font-bold px-3 py-1 rounded mr-4 flex-shrink-0 animate-pulse">
                     DONASI TERBARU
                 </div>
                 <div className="whitespace-nowrap overflow-hidden flex-1 relative group">
@@ -139,7 +166,7 @@ export default function FinancialReport() {
                         {[...recent_donations, ...recent_donations].map((d, i) => (
                             <span key={i} className="mx-6 inline-block">
                                 <span className="text-white font-semibold">{d.name}</span> 
-                                <span className="text-aqua mx-2 font-mono text-xs bg-navy-light px-2 py-0.5 rounded">Rp {d.amount}</span> 
+                                <span className="text-amber-400 mx-2 font-mono text-xs bg-slate-800 px-2 py-0.5 rounded">Rp {d.amount}</span> 
                                 <span className="text-slate-500 text-xs">({d.category})</span>
                             </span>
                         ))}
@@ -155,7 +182,6 @@ export default function FinancialReport() {
         .animate-marquee {
           animation: marquee 25s linear infinite;
         }
-        /* Fitur pause saat hover agar user bisa baca */
         .hover\\:pause:hover {
             animation-play-state: paused;
         }

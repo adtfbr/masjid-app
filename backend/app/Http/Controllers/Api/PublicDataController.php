@@ -3,74 +3,113 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Event;
+use App\Models\BankAccount;
 use App\Models\Donation;
-use App\Models\BankAccount; // Pastikan model ini sudah dibuat
+use App\Models\Event;
+use App\Models\Expense;
 use Illuminate\Http\Request;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\Cache;
 
 class PublicDataController extends Controller
 {
-    public function getHomeData()
+    public function getInitialData()
     {
-        // Cache data selama 1 jam (3600 detik) agar database tidak jebol saat traffic tinggi
-        $data = Cache::remember('home_public_data', 3600, function () {
+        try {
+            // 1. Ambil Data Kegiatan Akan Datang (Limit 3)
+            $events = Event::upcoming()->take(3)->get();
 
-            // 1. Ambil Event (3 terdekat)
-            $events = Event::where('is_active', true)
-                ->whereDate('date', '>=', Carbon::today())
-                ->orderBy('date', 'asc')
-                ->take(3)
-                ->get();
+            // 2. Ambil Rekening Aktif
+            $bankAccounts = BankAccount::where('is_active', true)->get();
 
-            // 2. Hitung Total Saldo (Hanya yang verified)
-            $totalDonation = Donation::where('status', 'verified')->sum('amount');
+            // 3. Hitung Keuangan (Financial Summary)
+            $totalIncome = Donation::verified()->sum('amount');
+            $totalExpense = Expense::sum('amount');
+            $balance = $totalIncome - $totalExpense;
 
-            // 3. Hitung Pemasukan Bulan Ini
-            $donationThisMonth = Donation::where('status', 'verified')
-                ->whereMonth('created_at', Carbon::now()->month)
-                ->whereYear('created_at', Carbon::now()->year)
-                ->sum('amount');
+            // 4. Mutasi Transaksi Terakhir (Gabungan Donasi & Pengeluaran)
 
-            // 4. Ambil 10 Donasi Terakhir untuk Running Text
-            $recentDonations = Donation::where('status', 'verified')
-                ->orderBy('created_at', 'desc')
-                ->take(10)
-                ->get(['donor_name', 'amount', 'category', 'created_at']);
+            // FIX: Tambahkan toBase() agar menjadi koleksi standar, bukan Eloquent Collection
+            $latestDonations = Donation::verified()->latest()->limit(5)->get()->toBase()->map(function ($item) {
+                return [
+                    'id' => 'd-' . $item->id,
+                    'type' => 'in',
+                    'date' => $item->created_at,
+                    'description' => 'Donasi: ' . $item->donor_name,
+                    'amount' => $item->amount,
+                ];
+            });
 
-            // 5. Ambil Data Rekening & QRIS yang Aktif
-            $bank = BankAccount::where('is_active', true)->first();
+            // FIX: Tambahkan toBase() di sini juga
+            $latestExpenses = Expense::latest()->limit(5)->get()->toBase()->map(function ($item) {
+                return [
+                    'id' => 'e-' . $item->id,
+                    'type' => 'out',
+                    // Pastikan field tanggal sesuai database
+                    'date' => $item->created_at ?? $item->expense_date,
+                    'description' => $item->title,
+                    'amount' => $item->amount,
+                ];
+            });
 
-            return [
-                'events' => $events,
-                'financial' => [
-                    'total_balance' => number_format($totalDonation, 0, ',', '.'),
-                    'income_month' => number_format($donationThisMonth, 0, ',', '.'),
-                    'last_update' => Carbon::now()->translatedFormat('d F Y H:i'),
+            // Sekarang merge akan aman karena keduanya adalah Base Collection
+            $mutations = $latestDonations->merge($latestExpenses)
+                ->sortByDesc('date')
+                ->values()
+                ->take(7);
+
+            return response()->json([
+                'masjid_info' => [
+                    'name' => 'Masjid Al-Huda',
+                    'address' => 'Jl. Tole Iskandar No.3, Mekar Jaya, Depok',
                 ],
-                'recent_donations' => $recentDonations->map(function($d) {
-                    return [
-                        'name' => $d->donor_name,
-                        'amount' => number_format($d->amount, 0, ',', '.'),
-                        'category' => $d->category,
-                        'time' => $d->created_at->diffForHumans(),
-                    ];
-                }),
-                // Data Bank untuk Frontend
-                'bank_account' => $bank ? [
-                    'bank' => $bank->bank_name,
-                    'number' => $bank->account_number,
-                    'name' => $bank->account_name,
-                    // Pastikan storage sudah dilink: php artisan storage:link
-                    'qris_url' => $bank->qris_image ? asset('storage/' . $bank->qris_image) : null,
-                ] : null,
-            ];
-        });
+                'events' => $events,
+                'bank_accounts' => $bankAccounts,
+                'financial' => [
+                    'balance' => $balance,
+                    'total_income' => $totalIncome,
+                    'total_expense' => $totalExpense,
+                    'mutations' => $mutations
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => true,
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ], 500);
+        }
+    }
+
+    public function storeDonation(Request $request)
+    {
+        $validated = $request->validate([
+            'donor_name' => 'required|string|max:255',
+            'amount' => 'required|numeric|min:1000',
+            'bank_account_id' => 'nullable|exists:bank_accounts,id',
+            'donor_phone' => 'nullable|string',
+            'notes' => 'nullable|string',
+            'proof_file' => 'nullable|image|max:2048'
+        ]);
+
+        $proofPath = null;
+        if ($request->hasFile('proof_file')) {
+            $proofPath = $request->file('proof_file')->store('donations', 'public');
+        }
+
+        $donation = Donation::create([
+            'donor_name' => $validated['donor_name'],
+            'amount' => $validated['amount'],
+            'bank_account_id' => $validated['bank_account_id'] ?? null,
+            'donor_phone' => $validated['donor_phone'],
+            'notes' => $validated['notes'],
+            'proof_file' => $proofPath,
+            'status' => 'pending'
+        ]);
 
         return response()->json([
-            'success' => true,
-            'data' => $data
-        ]);
+            'message' => 'Terima kasih! Donasi Anda sedang diverifikasi.',
+            'data' => $donation
+        ], 201);
     }
 }

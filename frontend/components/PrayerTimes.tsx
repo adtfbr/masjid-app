@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '@/lib/axios';
 import moment from 'moment';
 import ScrollReveal from './ScrollReveal';
 
@@ -13,6 +13,19 @@ interface PrayerData {
   };
 }
 
+// Konfigurasi Mapping: Key dari API -> Label Bahasa Indonesia
+const PRAYER_MAPPING: { [key: string]: string } = {
+  Fajr: 'Subuh',
+  Sunrise: 'Terbit',
+  Dhuhr: 'Dzuhur',
+  Asr: 'Ashar',
+  Maghrib: 'Maghrib',
+  Isha: 'Isya',
+};
+
+// Urutan tampilan yang diinginkan (hanya 6 waktu)
+const DISPLAY_ORDER = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
+
 export default function PrayerTimes() {
   const [data, setData] = useState<PrayerData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -20,17 +33,10 @@ export default function PrayerTimes() {
   const [nextPrayer, setNextPrayer] = useState<string>('-');
   const [countdown, setCountdown] = useState<string>('00:00:00');
 
-  // GUNAKAN FALLBACK JIKA ENV NULL
-  // Jika NEXT_PUBLIC_API_URL tidak terbaca, otomatis pakai localhost
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
-
   useEffect(() => {
     const fetchSchedule = async () => {
         try {
-          // Debugging: Cek URL di Console browser jika penasaran
-          // console.log("Fetching from:", `${API_URL}/api/prayer-times`);
-          
-          const res = await axios.get(`${API_URL}/api/prayer-times`);
+          const res = await api.get('/prayer-times');
           if (res.data.success) {
             setData(res.data.data);
             calculateNextPrayer(res.data.data.timings);
@@ -43,7 +49,7 @@ export default function PrayerTimes() {
       };
   
       fetchSchedule();
-  }, []); // Hapus API_URL dari dependency array agar tidak re-render berulang
+  }, []);
 
   useEffect(() => {
     if (!data) return;
@@ -56,23 +62,27 @@ export default function PrayerTimes() {
   const calculateNextPrayer = (timings: { [key: string]: string }) => {
     const now = moment();
     let foundNext = false;
-    let nextPrayerName = 'Subuh';
-    let nextPrayerTime = moment(timings['Subuh'], 'HH:mm').add(1, 'days');
+    let nextPrayerKey = 'Fajr'; // Default ke Subuh besok
+    let nextPrayerTime = moment(timings['Fajr'], 'HH:mm').add(1, 'days');
 
-    const order = ['Subuh', 'Terbit', 'Dzuhur', 'Ashar', 'Maghrib', 'Isya'];
-
-    for (const name of order) {
-      const timeStr = timings[name];
+    // Cek urutan waktu hari ini
+    for (const key of DISPLAY_ORDER) {
+      const timeStr = timings[key];
       const timeMoment = moment(timeStr, 'HH:mm');
+      
+      // Jika waktu sholat > waktu sekarang, berarti ini jadwal berikutnya
       if (timeMoment.isAfter(now)) {
-        nextPrayerName = name;
+        nextPrayerKey = key;
         nextPrayerTime = timeMoment;
         foundNext = true;
         break;
       }
     }
 
-    setNextPrayer(nextPrayerName);
+    // Set nama sholat dalam Bahasa Indonesia
+    setNextPrayer(PRAYER_MAPPING[nextPrayerKey]);
+    
+    // Hitung mundur
     const duration = moment.duration(nextPrayerTime.diff(now));
     setCountdown(`${String(duration.hours()).padStart(2, '0')}:${String(duration.minutes()).padStart(2, '0')}:${String(duration.seconds()).padStart(2, '0')}`);
   };
@@ -99,7 +109,7 @@ export default function PrayerTimes() {
               <div className="text-center xl:text-left border-b xl:border-b-0 xl:border-r border-gray-100 pb-6 xl:pb-0 xl:pr-10 w-full xl:w-auto min-w-[250px]">
                   <div className="inline-block bg-navy/5 px-3 py-1 rounded-full mb-3">
                     <p className="text-navy text-xs font-bold uppercase tracking-widest">
-                        📍 {data.city}
+                        📍 {data.city || 'Depok'}
                     </p>
                   </div>
                   <h3 className="text-sm text-slate-500 font-medium mb-1">
@@ -116,10 +126,13 @@ export default function PrayerTimes() {
               {/* KOLOM KANAN */}
               <div className="flex-1 w-full">
                   <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
-                      {Object.entries(data.timings).map(([name, time]) => {
-                          const isNext = name === nextPrayer;
+                      {DISPLAY_ORDER.map((key) => {
+                          const time = data.timings[key];
+                          const label = PRAYER_MAPPING[key];
+                          const isNext = label === nextPrayer;
+                          
                           return (
-                              <div key={name} className={`relative flex flex-col items-center justify-center p-3 rounded-2xl transition-all duration-300 w-full aspect-square md:aspect-auto md:h-24 ${
+                              <div key={key} className={`relative flex flex-col items-center justify-center p-3 rounded-2xl transition-all duration-300 w-full aspect-square md:aspect-auto md:h-24 ${
                                   isNext 
                                       ? 'bg-navy text-white shadow-lg shadow-navy/30 scale-105 ring-2 ring-offset-2 ring-aqua z-10' 
                                       : 'bg-slate-50 hover:bg-white hover:shadow-md border border-transparent hover:border-gray-100 text-slate-600'
@@ -129,7 +142,7 @@ export default function PrayerTimes() {
                                   )}
                                   
                                   <span className={`text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-1 ${isNext ? 'text-aqua' : 'text-slate-400'}`}>
-                                      {name}
+                                      {label}
                                   </span>
                                   <span className="text-lg sm:text-xl font-bold font-mono tracking-tight">{time}</span>
                               </div>

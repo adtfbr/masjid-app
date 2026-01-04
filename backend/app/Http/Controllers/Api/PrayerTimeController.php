@@ -3,67 +3,33 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
-use Carbon\Carbon;
 
 class PrayerTimeController extends Controller
 {
-    public function getDailySchedule(Request $request)
+    public function getDailySchedule()
     {
-        // --- UPDATE LOKASI KE DEPOK ---
-        $city = 'Kota Depok';
-        $latitude = -6.4025;   // Koordinat Pusat Kota Depok
-        $longitude = 106.7942; // Koordinat Pusat Kota Depok
+        // Kita cache hasilnya selama 1 hari agar tidak membebani API Aladhan
+        $data = Cache::remember('prayer_times_today', 60 * 24, function () {
+            // Koordinat Depok (Sesuai data masjid)
+            $lat = -6.4025;
+            $long = 106.7942;
 
-        // 2. Tentukan Tanggal Hari Ini
-        $today = Carbon::now();
-
-        // Update key cache agar data lama (Jakarta) terganti
-        $cacheKey = "prayer_times_v2_{$today->format('Y-m-d')}_{$city}";
-
-        // 3. Cek Cache
-        $schedule = Cache::remember($cacheKey, 60 * 60 * 24, function () use ($today, $latitude, $longitude) {
-
-            // Panggil API Aladhan (Metode Kemenag RI = method 20)
-            $response = Http::get('http://api.aladhan.com/v1/timings/' . $today->timestamp, [
-                'latitude' => $latitude,
-                'longitude' => $longitude,
-                'method' => 20, // 20 = Kemenag RI
-                'tune' => '0,0,2,0,2,0,0,0,0' // Penyesuaian menit ikhtiyat
+            $response = Http::get("http://api.aladhan.com/v1/timings/" . now()->timestamp, [
+                'latitude' => $lat,
+                'longitude' => $long,
+                'method' => 20, // Kemenag RI
             ]);
 
-            if ($response->successful()) {
-                return $response->json()['data'];
-            }
-
-            return null;
+            return $response->json();
         });
 
-        if (!$schedule) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal mengambil jadwal sholat'
-            ], 500);
-        }
-
-        // 4. Format Data untuk Frontend
+        // Struktur response disesuaikan dengan ekspektasi frontend lama
+        // Frontend berharap: res.data.success & res.data.data
         return response()->json([
             'success' => true,
-            'data' => [
-                'city' => $city,
-                'date' => $schedule['date']['readable'],
-                'hijri' => $schedule['date']['hijri']['date'] . ' ' . $schedule['date']['hijri']['month']['en'] . ' ' . $schedule['date']['hijri']['year'],
-                'timings' => [
-                    'Subuh' => $schedule['timings']['Fajr'],
-                    'Terbit' => $schedule['timings']['Sunrise'],
-                    'Dzuhur' => $schedule['timings']['Dhuhr'],
-                    'Ashar' => $schedule['timings']['Asr'],
-                    'Maghrib' => $schedule['timings']['Maghrib'],
-                    'Isya' => $schedule['timings']['Isha'],
-                ]
-            ]
+            'data' => $data['data'] ?? null
         ]);
     }
 }

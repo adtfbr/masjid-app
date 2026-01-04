@@ -9,5 +9,14 @@ class BankAccount extends Model
 {
     use HasFactory;
 
-    protected $guarded = [];
+    protected $guarded = ['id'];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
+
+    public function donations()
+    {
+        return $this->hasMany(Donation::class);
+    }
 }
