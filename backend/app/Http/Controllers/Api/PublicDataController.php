@@ -57,19 +57,23 @@ class PublicDataController extends Controller
                 ->take(7);
 
             return response()->json([
-                'masjid_info' => [
-                    'name' => 'Masjid Al-Huda',
-                    'address' => 'Jl. Tole Iskandar No.3, Mekar Jaya, Depok',
-                ],
-                'events' => $events,
-                'bank_accounts' => $bankAccounts,
-                'financial' => [
-                    'balance' => $balance,
-                    'total_income' => $totalIncome,
-                    'total_expense' => $totalExpense,
-                    'mutations' => $mutations
+                'success' => true,
+                'data' => [
+                    'masjid_info' => [
+                        'name' => 'Masjid Al-Huda',
+                        'address' => 'Jl. Tole Iskandar No.3, Mekar Jaya, Depok',
+                    ],
+                    'events' => $events,
+                    'bank_accounts' => $bankAccounts,
+                    'financial' => [
+                        'balance' => $balance,
+                        'total_income' => $totalIncome,
+                        'total_expense' => $totalExpense,
+                        'mutations' => $mutations
+                    ],
                 ]
             ]);
+
 
         } catch (\Exception $e) {
             return response()->json([
